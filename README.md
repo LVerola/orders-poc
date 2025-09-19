@@ -33,17 +33,6 @@ O objetivo é demonstrar domínio em **.NET, React, PostgreSQL, mensageria e boa
 
 ---
 
-## 📂 Estrutura do Projeto
-
-orders-poc/
-├── backend/ # API em .NET
-├── worker/ # Worker para consumir fila
-├── frontend/ # Interface React + Tailwind
-├── infra/ # Docker Compose, configs
-└── docs/ # Diagramas
-
----
-
 ## 📐 Diagramas
 
 ### Arquitetura
@@ -76,7 +65,7 @@ Tabela **Orders**:
 ## 🚀 Como Rodar Localmente
 
 ### Pré-requisitos
-- [.NET 7+](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
+- [.NET 8+](https://dotnet.microsoft.com/pt-br/download)
 - [Node.js 18+](https://nodejs.org/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
@@ -107,7 +96,7 @@ docker-compose up -d
 ### Passo 4 – Rodar Backend
 
 ```bash
-cd backend
+cd backend/Orders.Api
 dotnet ef database update
 dotnet run
 ```

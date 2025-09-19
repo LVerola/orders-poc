@@ -1,0 +1,17 @@
+# .NET
+bin/
+obj/
+*.user
+*.vs
+*.suo
+*.pdb
+*.db
+
+# Node / Frontend
+node_modules/
+dist/
+build/
+
+# Docker / env
+.env
+docker-compose.override.yml
