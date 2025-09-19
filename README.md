@@ -60,6 +60,12 @@ Tabela **Orders**:
 - `Status` (enum: `Pendente`, `Processando`, `Finalizado`)
 - `DataCriacao` (datetime)
 
+Tabela **OrderStatusHistory**:
+- `Id` (UUID, PK)
+- `OrderId` (UUID, FK)
+- `Status` (string)
+- `DataAlteracao` (datetime)
+
 ---
 
 ## 🚀 Como Rodar Localmente
@@ -80,12 +86,18 @@ cd orders-poc
 Crie um arquivo .env na raiz com:
 
 ```env
+# Configuração do PostgreSQL
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
-POSTGRES_DB=ordersdb
+POSTGRES_DB=orders
 POSTGRES_HOST=postgres
 
-SERVICEBUS_CONNECTIONSTRING=Endpoint=sb://orderazurebus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=WHA1Msuen+avkfHCCy8dUywKQ1Bi7g0BZ+ASbHooHxY=
+# Azure Service Bus
+SERVICEBUS_CONNECTIONSTRING=Endpoint=sb://orderazurebus.xpto...
+
+# PgAdmin
+PGADMIN_DEFAULT_EMAIL=admin@admin.com
+PGADMIN_DEFAULT_PASSWORD=admin
 ```
 
 ### Passo 3 – Subir ambiente com Docker Compose
@@ -127,7 +139,15 @@ Cria um novo pedido.
   "produto": "Notebook",
   "valor": 4500.00,
   "status": "Pendente",
-  "dataCriacao": "2025-09-18T14:22:00Z"
+  "dataCriacao": "2025-09-18T14:22:00Z",
+  "statusHistories": [
+		{
+			"id": "019962d1-2c1f-74e1-aaa0-0ab4c3c7c264",
+			"orderId": "a3b9f2b6-8d8c-4e32-8f7f-2cbe0d8f3e21",
+			"status": "Pendente",
+			"dataAlteracao": "2025-09-18T14:22:00Z"
+		}
+	]
 }
 ```
 
@@ -146,7 +166,27 @@ Lista todos os pedidos cadastrados.
     "produto": "Notebook",
     "valor": 4500.00,
     "status": "Finalizado",
-    "dataCriacao": "2025-09-18T14:22:00Z"
+    "dataCriacao": "2025-09-18T14:22:00Z",
+    "statusHistories": [
+      {
+        "id": "019962d1-2c1f-74e1-aaa0-0ab4c3c7c264",
+        "orderId": "a3b9f2b6-8d8c-4e32-8f7f-2cbe0d8f3e21",
+        "status": "Pendente",
+        "dataAlteracao": "2025-09-18T14:22:00Z"
+      },
+      {
+        "id": "019962d1-32f3-7f85-b17b-e0b4c246a751",
+        "orderId": "a3b9f2b6-8d8c-4e32-8f7f-2cbe0d8f3e21",
+        "status": "Processando",
+        "dataAlteracao": "2025-09-19T16:31:41.274118Z"
+      },
+      {
+        "id": "019962d1-46c0-7265-8c48-1574cd2ac4f7",
+        "orderId": "a3b9f2b6-8d8c-4e32-8f7f-2cbe0d8f3e21",
+        "status": "Finalizado",
+        "dataAlteracao": "2025-09-19T16:31:46.367675Z"
+      }
+	  ]
   }
 ]
 ```
@@ -164,10 +204,69 @@ Retorna os detalhes de um pedido específico.
   "cliente": "João da Silva",
   "produto": "Notebook",
   "valor": 4500.00,
-  "status": "Processando",
-  "dataCriacao": "2025-09-18T14:22:00Z"
+  "status": "Finalizado",
+  "dataCriacao": "2025-09-18T14:22:00Z",
+  "statusHistories": [
+    {
+      "id": "019962d1-2c1f-74e1-aaa0-0ab4c3c7c264",
+      "orderId": "a3b9f2b6-8d8c-4e32-8f7f-2cbe0d8f3e21",
+      "status": "Pendente",
+      "dataAlteracao": "2025-09-18T14:22:00Z"
+    },
+    {
+      "id": "019962d1-32f3-7f85-b17b-e0b4c246a751",
+      "orderId": "a3b9f2b6-8d8c-4e32-8f7f-2cbe0d8f3e21",
+      "status": "Processando",
+      "dataAlteracao": "2025-09-19T16:31:41.274118Z"
+    },
+    {
+      "id": "019962d1-46c0-7265-8c48-1574cd2ac4f7",
+      "orderId": "a3b9f2b6-8d8c-4e32-8f7f-2cbe0d8f3e21",
+      "status": "Finalizado",
+      "dataAlteracao": "2025-09-19T16:31:46.367675Z"
+    }
+  ]
 }
 ```
+
+---
+
+### 📊 Acessando o pgAdmin
+
+O **pgAdmin** já está configurado no `docker-compose.yml`.  
+Após subir os serviços com:
+
+```bash
+docker compose --env-file ../.env up -d --build
+```
+
+Ele ficará disponível em:
+
+- URL: http://localhost:5050
+
+- Usuário: ${PGADMIN_DEFAULT_EMAIL}
+
+- Senha: ${PGADMIN_DEFAULT_PASSWORD}
+
+### 🔗 Conectando ao Postgres no pgAdmin
+
+1. Clique em Add New Server.
+
+2. Em General → Name, coloque um nome (ex: OrdersDB).
+
+3. Em Connection:
+
+    - Host: postgres
+
+    - Port: 5432
+
+    - Username: ${POSTGRES_USER}
+
+    - Password: ${POSTGRES_PASSWORD}
+
+4. Clique em Save.
+
+Agora você poderá navegar pelas tabelas Orders e OrderStatusHistories. 🚀
 
 ---
 
@@ -191,13 +290,13 @@ npm test
 
 ## 📈 Diferenciais Técnicos
 
-- [ ]  Healthchecks implementados (API, Banco e Azure Service Bus).
+- [X]  Healthchecks implementados (API, Banco e Azure Service Bus).
 
-- [ ] Sequência de status obrigatória Pendente → Processando → Finalizado.
+- [X] Sequência de status obrigatória Pendente → Processando → Finalizado.
 
-- [ ] Histórico de status do pedido.
+- [X] Histórico de status do pedido.
 
-- [ ] Outbox Pattern para mensageria transacional.
+- [X] Outbox Pattern para mensageria transacional.
 
 - [ ] SignalR/WebSockets para atualização em tempo real.
 
@@ -213,17 +312,29 @@ npm test
 📦 order-management
  ┣ 📂 backend
  ┃ ┣ 📂 Orders.Api
- ┃ ┃ ┣ 📂 src
- ┃ ┃ ┃ ┣ 📂 Api        # Controllers e Endpoints
- ┃ ┃ ┃ ┣ 📂 Domain     # Entidades e regras de negócio
- ┃ ┃ ┃ ┣ 📂 Infra      # EF Core, Repositórios, Migrations
- ┃ ┃ ┣ 📂 tests        # Testes unitários e integração
- ┃ ┃ ┗ dockerfile
+ ┃ ┃ ┣ 📂 Controllers
+ ┃ ┃ ┃ ┣ OrdersController.cs
+ ┃ ┃ ┣ 📂 Migrations
+ ┃ ┃ ┣ 📂 Models
+ ┃ ┃ ┃ ┣ Order.cs
+ ┃ ┃ ┃ ┣ OrderStatusHistory.cs
+ ┃ ┃ ┣ 📂 Mocks
+ ┃ ┃ ┣ dockerfile
+ ┃ ┃ ┣ appsettings.json
+ ┃ ┃ ┣ Orders.Api.csproj
+ ┃ ┗ ┗ Program.cs
  ┣ 📂 docs           # Diagramas (arquitetura / banco)
  ┣ 📂 frontend       # React + Tailwind
  ┣ 📂 infra          # docker-compose.yml
- ┣ 📂 worker         
- ┃ ┣ 📂 Orders.Worker # Worker Service consumindo Service Bus
+ ┣ 📂 worker
+ ┃ ┣ 📂 Orders.Worker
+ ┃ ┃ ┣ 📂 Models
+ ┃ ┃ ┃ ┣ Order.cs
+ ┃ ┃ ┃ ┣ OrderStatusHistory.cs
+ ┃ ┃ ┣ dockerfile
+ ┃ ┃ ┣ appsettings.json
+ ┃ ┃ ┣ Orders.Worker.csproj
+ ┃ ┗ ┗ Program.cs
  ┣ README.md
  ┣ .gitignore
  ┗ .env.example
