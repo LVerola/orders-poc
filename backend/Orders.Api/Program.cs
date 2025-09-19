@@ -25,7 +25,12 @@ builder.Services.AddDbContext<OrdersDbContext>(options =>
     options.UseNpgsql(defaultConnection));
 
 builder.Services.AddHealthChecks();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+            options.JsonSerializerOptions.WriteIndented = true; // opcional, facilita leitura
+        });
 
 var app = builder.Build();
 
@@ -36,7 +41,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-app.MapGet("/", () => "Hello World from Orders API!");
+// app.MapGet("/", () => "Hello World from Orders API!");
 app.MapHealthChecks("/health");
 app.MapControllers();
 app.Run();

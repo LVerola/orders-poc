@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Orders.Api.Models
+namespace Orders.Worker.Models
 {
     public class OrderStatusHistory
     {

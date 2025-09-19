@@ -23,15 +23,23 @@ public class OrdersController : ControllerBase
         order.Status = "Pendente";
         order.DataCriacao = DateTime.UtcNow;
 
+        order.StatusHistories.Add(new OrderStatusHistory
+        {
+            Status = "Pendente",
+            DataAlteracao = DateTime.UtcNow,
+            OrderId = order.Id
+        });
+
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
-        // Enviar mensagem para Service Bus
-        var message = new ServiceBusMessage(System.Text.Json.JsonSerializer.Serialize(order))
+        // Enviar apenas o Id do pedido
+        var message = new ServiceBusMessage(order.Id.ToString())
         {
             CorrelationId = order.Id.ToString(),
             Subject = "OrderCreated"
         };
+
         await _serviceBusSender.SendMessageAsync(message);
 
         return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
