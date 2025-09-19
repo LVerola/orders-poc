@@ -1,7 +1,7 @@
-version: "3.9"
 services:
   api:
-    build: ../backend/Orders.Api
+    build:
+      context: ../backend/Orders.Api
     ports:
       - "5000:8080"
     environment:

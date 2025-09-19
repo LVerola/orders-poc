@@ -1,44 +1,69 @@
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// ---------------------------
+// Configuração do DbContext
+// ---------------------------
+builder.Services.AddDbContext<OrdersDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+// ---------------------------
+// Registrar HealthCheck EF Core
+// ---------------------------
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<OrdersDbContext>("PostgreSQL");
+
+// ---------------------------
+// Adicionar suporte a controllers
+// ---------------------------
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// ---------------------------
+// Endpoints mínimos
+// ---------------------------
 
-app.UseHttpsRedirection();
+// Hello World para teste rápido
+app.MapGet("/", () => "Hello World from Orders API!");
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// Health endpoint para monitoramento
+app.MapHealthChecks("/health");
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+// Mapear controllers (futuros CRUD endpoints)
+app.MapControllers();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+// ---------------------------
+// DbContext e entidades mínimas
+// ---------------------------
+
+public class OrdersDbContext : DbContext
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    public OrdersDbContext(DbContextOptions<OrdersDbContext> options) : base(options) { }
+
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
+}
+
+// Entidade de pedido
+public class Order
+{
+    public Guid Id { get; set; }
+    public string Cliente { get; set; } = string.Empty;
+    public string Produto { get; set; } = string.Empty;
+    public decimal Valor { get; set; }
+    public string Status { get; set; } = "Pendente";
+    public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
+}
+
+// Histórico de status do pedido
+public class OrderStatusHistory
+{
+    public Guid Id { get; set; }
+    public Guid OrderId { get; set; }
+    public string Status { get; set; } = "Pendente";
+    public DateTime DataAlteracao { get; set; } = DateTime.UtcNow;
 }

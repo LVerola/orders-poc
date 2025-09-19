@@ -16,7 +16,7 @@ O objetivo é demonstrar domínio em **.NET, React, PostgreSQL, mensageria e boa
 ## 🛠 Tecnologias Utilizadas
 
 ### Backend
-- [.NET 8](https://dotnet.microsoft.com/pt-br/download) + C#
+- [.NET 9](https://dotnet.microsoft.com/pt-br/download) + C#
 - Entity Framework Core + Npgsql
 - Azure Service Bus SDK
 - Health Checks
@@ -65,7 +65,7 @@ Tabela **Orders**:
 ## 🚀 Como Rodar Localmente
 
 ### Pré-requisitos
-- [.NET 8+](https://dotnet.microsoft.com/pt-br/download)
+- [.NET 9+](https://dotnet.microsoft.com/pt-br/download)
 - [Node.js 18+](https://nodejs.org/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
@@ -219,17 +219,20 @@ npm test
 ```bash
 📦 order-management
  ┣ 📂 backend
- ┃ ┣ 📂 src
- ┃ ┃ ┣ 📂 Api        # Controllers e Endpoints
- ┃ ┃ ┣ 📂 Domain     # Entidades e regras de negócio
- ┃ ┃ ┣ 📂 Infra      # EF Core, Repositórios, Migrations
- ┃ ┣ 📂 tests        # Testes unitários e integração
- ┃ ┗ dockerfile
- ┣ 📂 worker         # Worker Service consumindo Service Bus
- ┣ 📂 frontend       # React + Tailwind
+ ┃ ┣ 📂 Orders.Api
+ ┃ ┃ ┣ 📂 src
+ ┃ ┃ ┃ ┣ 📂 Api        # Controllers e Endpoints
+ ┃ ┃ ┃ ┣ 📂 Domain     # Entidades e regras de negócio
+ ┃ ┃ ┃ ┣ 📂 Infra      # EF Core, Repositórios, Migrations
+ ┃ ┃ ┣ 📂 tests        # Testes unitários e integração
+ ┃ ┃ ┗ dockerfile
  ┣ 📂 docs           # Diagramas (arquitetura / banco)
- ┣ docker-compose.yml
+ ┣ 📂 frontend       # React + Tailwind
+ ┣ 📂 infra          # docker-compose.yml
+ ┣ 📂 worker         
+ ┃ ┣ 📂 Orders.Worker # Worker Service consumindo Service Bus
  ┣ README.md
+ ┣ .gitignore
  ┗ .env.example
 ```
 
