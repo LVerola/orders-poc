@@ -84,7 +84,8 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=ordersdb
 POSTGRES_HOST=postgres
-SERVICEBUS_CONNECTIONSTRING=Endpoint=sb://...
+
+SERVICEBUS_CONNECTIONSTRING=Endpoint=sb://orderazurebus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=WHA1Msuen+avkfHCCy8dUywKQ1Bi7g0BZ+ASbHooHxY=
 ```
 
 ### Passo 3 – Subir ambiente com Docker Compose
@@ -93,15 +94,7 @@ SERVICEBUS_CONNECTIONSTRING=Endpoint=sb://...
 docker compose --env-file ../.env up -d --build
 ```
 
-### Passo 4 – Rodar Backend
-
-```bash
-cd backend/Orders.Api
-dotnet ef database update
-dotnet run
-```
-
-### Passo 5 – Rodar Frontend
+### Passo 4 – Rodar Frontend
 
 ```bash
 cd frontend

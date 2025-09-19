@@ -21,7 +21,7 @@ services:
       - "5000:8080"
     environment:
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__Default=Host=postgres;Database=orders;Username=postgres;Password=postgres
+      - ConnectionStrings__Default=Host=${POSTGRES_HOST};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - SERVICEBUS_CONNECTIONSTRING=${SERVICEBUS_CONNECTIONSTRING}
     depends_on:
       postgres:
@@ -34,7 +34,7 @@ services:
   worker:
     build: ../worker/Orders.Worker
     environment:
-      - ConnectionStrings__Default=Host=postgres;Database=orders;Username=postgres;Password=postgres
+      - ConnectionStrings__Default=Host=${POSTGRES_HOST};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - SERVICEBUS_CONNECTIONSTRING=${SERVICEBUS_CONNECTIONSTRING}
     depends_on:
       postgres:
