@@ -1,69 +1,51 @@
 using Microsoft.EntityFrameworkCore;
+using Azure.Messaging.ServiceBus;
+using Orders.Api.Models;
+using Orders.Api.Mocks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---------------------------
-// Configuração do DbContext
-// ---------------------------
+// Se não houver a variável real do Azure Service Bus, usa o mock
+var serviceBusConnectionString = Environment.GetEnvironmentVariable("SERVICEBUS_CONNECTIONSTRING");
+
+if (string.IsNullOrWhiteSpace(serviceBusConnectionString))
+{
+    Console.WriteLine("SERVICEBUS_CONNECTIONSTRING não encontrada. Usando MockServiceBus para desenvolvimento.");
+    builder.Services.AddSingleton<ServiceBusClient, MockServiceBusClient>();
+}
+else
+{
+    builder.Services.AddSingleton<ServiceBusClient>(_ =>
+        new ServiceBusClient(serviceBusConnectionString));
+}
+
+// Configura DbContext usando connection string do appsettings ou variáveis de ambiente
+var defaultConnection = builder.Configuration.GetConnectionString("Default");
 builder.Services.AddDbContext<OrdersDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+    options.UseNpgsql(defaultConnection));
 
-// ---------------------------
-// Registrar HealthCheck EF Core
-// ---------------------------
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<OrdersDbContext>("PostgreSQL");
-
-// ---------------------------
-// Adicionar suporte a controllers
-// ---------------------------
+builder.Services.AddHealthChecks();
 builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// ---------------------------
-// Endpoints mínimos
-// ---------------------------
+// Aplica migrations automaticamente
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
+    db.Database.Migrate();
+}
 
-// Hello World para teste rápido
 app.MapGet("/", () => "Hello World from Orders API!");
-
-// Health endpoint para monitoramento
 app.MapHealthChecks("/health");
-
-// Mapear controllers (futuros CRUD endpoints)
 app.MapControllers();
-
 app.Run();
 
-// ---------------------------
-// DbContext e entidades mínimas
-// ---------------------------
-
+// DbContext
 public class OrdersDbContext : DbContext
 {
     public OrdersDbContext(DbContextOptions<OrdersDbContext> options) : base(options) { }
 
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
-}
-
-// Entidade de pedido
-public class Order
-{
-    public Guid Id { get; set; }
-    public string Cliente { get; set; } = string.Empty;
-    public string Produto { get; set; } = string.Empty;
-    public decimal Valor { get; set; }
-    public string Status { get; set; } = "Pendente";
-    public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
-}
-
-// Histórico de status do pedido
-public class OrderStatusHistory
-{
-    public Guid Id { get; set; }
-    public Guid OrderId { get; set; }
-    public string Status { get; set; } = "Pendente";
-    public DateTime DataAlteracao { get; set; } = DateTime.UtcNow;
 }

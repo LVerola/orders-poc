@@ -90,7 +90,7 @@ SERVICEBUS_CONNECTIONSTRING=Endpoint=sb://...
 ### Passo 3 – Subir ambiente com Docker Compose
 
 ```bash
-docker-compose up -d
+docker compose --env-file ../.env up -d --build
 ```
 
 ### Passo 4 – Rodar Backend
