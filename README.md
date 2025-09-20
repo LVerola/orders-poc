@@ -100,19 +100,23 @@ PGADMIN_DEFAULT_EMAIL=admin@admin.com
 PGADMIN_DEFAULT_PASSWORD=admin
 ```
 
+e também dentro de frontend/Orders.Frontend com:
+
+```env
+VITE_API_URL=http://localhost:5000
+```
+
 ### Passo 3 – Subir ambiente com Docker Compose
 
 ```bash
 docker compose --env-file ../.env up -d --build
 ```
 
-### Passo 4 – Rodar Frontend
+### Passo 4 – Acessar o Frontend
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+Ele ficará disponível em:
+
+- URL: http://localhost:3000
 
 ---
 
@@ -324,7 +328,23 @@ npm test
  ┃ ┃ ┣ Orders.Api.csproj
  ┃ ┗ ┗ Program.cs
  ┣ 📂 docs           # Diagramas (arquitetura / banco)
- ┣ 📂 frontend       # React + Tailwind
+ ┣ 📂 frontend
+ ┃ ┣ 📂 Orders.Frontend
+ ┃ ┃ ┣ 📂 src
+ ┃ ┃ ┃ ┣ 📂 components
+ ┃ ┃ ┃ ┃ ┣ Header.tsx
+ ┃ ┃ ┃ ┃ ┣ NewOrder.tsx
+ ┃ ┃ ┃ ┃ ┣ OrderCard.tsx
+ ┃ ┃ ┃ ┃ ┣ OrderDetails.tsx
+ ┃ ┃ ┃ ┃ ┗ OrderOverview.tsx
+ ┃ ┃ ┃ ┣ 📂 services
+ ┃ ┃ ┃ ┃ ┗ api.tsx
+ ┃ ┃ ┃ ┃ App.tsx
+ ┃ ┃ ┃ ┃ index.css
+ ┃ ┃ ┃ ┗ main.tsx
+ ┃ ┃ ┣ .env.example
+ ┃ ┃ ┣ package.json
+ ┃ ┃ ┗ vite.config.json
  ┣ 📂 infra          # docker-compose.yml
  ┣ 📂 worker
  ┃ ┣ 📂 Orders.Worker
