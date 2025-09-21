@@ -257,6 +257,26 @@ Retorna os detalhes de um pedido específico.
 
 ---
 
+### POST /analytics/ask
+Cria um novo pedido.
+
+**Request**
+```json
+{
+  "Question": "Quantos pedidos estão pendentes?"
+}
+```
+
+**Response**
+
+```json
+{
+	"answer": "Uma pergunta simples!\n\nPara responder isso, vou verificar a tabela Orders e contar quantos registros têm o status \"Pendente\".\n\nDe acordo com os dados, há **5** pedidos pendentes."
+}
+```
+
+---
+
 ### 📊 Acessando o pgAdmin
 
 O **pgAdmin** já está configurado no `docker-compose.yml`.  
