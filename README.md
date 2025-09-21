@@ -117,7 +117,10 @@ VITE_API_URL=http://localhost:5000
 
 ### Passo 3 – Subir ambiente com Docker Compose
 
+- Acesse a pasta infra no terminal e depois rode o comando para subir o docker compose
+
 ```bash
+cd infra
 docker compose --env-file ../.env up -d --build
 ```
 
