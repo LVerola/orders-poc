@@ -98,6 +98,10 @@ SERVICEBUS_CONNECTIONSTRING=Endpoint=sb://orderazurebus.xpto...
 # PgAdmin
 PGADMIN_DEFAULT_EMAIL=admin@admin.com
 PGADMIN_DEFAULT_PASSWORD=admin
+
+# SignalR e CORS
+FRONTEND_URL=http://localhost:3000
+API_URL=http://api:8080
 ```
 
 e também dentro de frontend/Orders.Frontend com:
@@ -302,7 +306,7 @@ npm test
 
 - [X] Outbox Pattern para mensageria transacional.
 
-- [ ] SignalR/WebSockets para atualização em tempo real.
+- [X] SignalR/WebSockets para atualização em tempo real.
 
 - [ ] Testcontainers para integração.
 
@@ -317,12 +321,14 @@ npm test
  ┣ 📂 backend
  ┃ ┣ 📂 Orders.Api
  ┃ ┃ ┣ 📂 Controllers
- ┃ ┃ ┃ ┣ OrdersController.cs
+ ┃ ┃ ┃ ┗ OrdersController.cs
  ┃ ┃ ┣ 📂 Migrations
  ┃ ┃ ┣ 📂 Models
  ┃ ┃ ┃ ┣ Order.cs
- ┃ ┃ ┃ ┣ OrderStatusHistory.cs
+ ┃ ┃ ┃ ┗ OrderStatusHistory.cs
  ┃ ┃ ┣ 📂 Mocks
+ ┃ ┃ ┣ 📂 SignalR
+ ┃ ┃ ┃ ┗ OrdersHub.cs
  ┃ ┃ ┣ dockerfile
  ┃ ┃ ┣ appsettings.json
  ┃ ┃ ┣ Orders.Api.csproj
@@ -337,8 +343,12 @@ npm test
  ┃ ┃ ┃ ┃ ┣ OrderCard.tsx
  ┃ ┃ ┃ ┃ ┣ OrderDetails.tsx
  ┃ ┃ ┃ ┃ ┗ OrderOverview.tsx
+ ┃ ┃ ┃ ┣ 📂 hooks
+ ┃ ┃ ┃ ┃ ┣ useOrder.tsx
+ ┃ ┃ ┃ ┃ ┗ useOrders.tsx
  ┃ ┃ ┃ ┣ 📂 services
- ┃ ┃ ┃ ┃ ┗ api.tsx
+ ┃ ┃ ┃ ┃ ┣ signalr.ts
+ ┃ ┃ ┃ ┃ ┗ api.ts
  ┃ ┃ ┃ ┃ App.tsx
  ┃ ┃ ┃ ┃ index.css
  ┃ ┃ ┃ ┗ main.tsx

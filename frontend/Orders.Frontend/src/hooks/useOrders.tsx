@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import connection from '../services/signalr';
 import api from '../services/api';
 
 export type Status = 'Pendente' | 'Processando' | 'Finalizado';
@@ -59,6 +60,26 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
   });
+
+  useEffect(() => {
+  if (connection.state === "Disconnected") {
+    connection.start()
+      .then(() => console.log("SignalR conectado!"))
+      .catch(err => console.error("Erro ao conectar SignalR:", err));
+  }
+
+  const handleOrderUpdated = (order: Order) => {
+    refetch();
+    queryClient.invalidateQueries({ queryKey: ['orders'] });
+    queryClient.invalidateQueries({ queryKey: ['order', order.id] });
+  };
+
+  connection.on("OrderUpdated", handleOrderUpdated);
+
+  return () => {
+    connection.off("OrderUpdated", handleOrderUpdated);
+  };
+}, [queryClient, refetch]);
 
   return (
     <OrdersContext.Provider

@@ -31,6 +31,8 @@ public class Worker : BackgroundService
     private async Task ProcessMessageHandler(ProcessMessageEventArgs args)
     {
         var orderIdString = args.Message.Body.ToString();
+        using var httpClient = new HttpClient();
+        var apiUrl = Environment.GetEnvironmentVariable("API_URL");
 
         if (!Guid.TryParse(orderIdString, out var orderId))
         {
@@ -62,6 +64,7 @@ public class Worker : BackgroundService
             Status = "Processando"
         });
         await db.SaveChangesAsync();
+        await httpClient.PostAsync($"{apiUrl}/orders/{order.Id}/notify", null);
 
         await Task.Delay(5000);
 
@@ -72,6 +75,7 @@ public class Worker : BackgroundService
             Status = "Finalizado"
         });
         await db.SaveChangesAsync();
+        await httpClient.PostAsync($"{apiUrl}/orders/{order.Id}/notify", null);
 
         _logger.LogInformation("Order {orderId} finalizado.", order.Id);
 

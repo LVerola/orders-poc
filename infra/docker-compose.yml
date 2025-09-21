@@ -23,6 +23,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Default=Host=${POSTGRES_HOST};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - SERVICEBUS_CONNECTIONSTRING=${SERVICEBUS_CONNECTIONSTRING}
+      - FRONTEND_URL=${FRONTEND_URL}
     depends_on:
       postgres:
         condition: service_healthy
@@ -36,6 +37,7 @@ services:
     environment:
       - ConnectionStrings__Default=Host=${POSTGRES_HOST};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - SERVICEBUS_CONNECTIONSTRING=${SERVICEBUS_CONNECTIONSTRING}
+      - API_URL=${API_URL}
     depends_on:
       postgres:
         condition: service_healthy

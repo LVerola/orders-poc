@@ -31,7 +31,6 @@ const NewOrder: React.FC<NewOrderProps> = ({ open, onClose }) => {
 	const handleSubmit = async (e: React.FormEvent) => {
 		try {
 			e.preventDefault();
-			console.log(valor);
 			await orderSchema.validate({ cliente, produto, valor }, { abortEarly: false });
 			createOrder({ cliente, produto, valor: parseFloat(valor.replace(/\D/g, '')) / 100 });
 			setCliente('');

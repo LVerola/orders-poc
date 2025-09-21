@@ -29,12 +29,14 @@ builder.Services.AddControllers()
             options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
             options.JsonSerializerOptions.WriteIndented = true; // opcional, facilita leitura
         });
+builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowFrontend", policy =>
-            policy.WithOrigins("http://localhost:3000")
+            policy.WithOrigins(Environment.GetEnvironmentVariable("FRONTEND_URL"))
                 .AllowAnyHeader()
-                .AllowAnyMethod());
+                .AllowAnyMethod()
+                .AllowCredentials());
     });
 
 var app = builder.Build();
@@ -47,6 +49,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+app.MapHub<OrdersHub>("/ordersHub");
 app.MapHealthChecks("/health");
 app.MapControllers();
 app.Run();
