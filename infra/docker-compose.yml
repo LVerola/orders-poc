@@ -24,6 +24,7 @@ services:
       - ConnectionStrings__Default=Host=${POSTGRES_HOST};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - SERVICEBUS_CONNECTIONSTRING=${SERVICEBUS_CONNECTIONSTRING}
       - FRONTEND_URL=${FRONTEND_URL}
+      - OLLAMA_URL=${OLLAMA_URL}
     depends_on:
       postgres:
         condition: service_healthy
@@ -71,3 +72,13 @@ services:
       - CHOKIDAR_USEPOLLING=true
     depends_on:
       - api
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  ollama-data:

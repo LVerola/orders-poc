@@ -20,16 +20,20 @@ O objetivo é demonstrar domínio em **.NET, React, PostgreSQL, mensageria e boa
 - Entity Framework Core + Npgsql
 - Azure Service Bus SDK
 - Health Checks
+- SignalR (atualização em tempo real)
+- Ollama (IA/Analytics) - integração com LLM local para perguntas em linguagem natural
 
 ### Frontend
 - [React](https://react.dev/)
 - [TailwindCSS](https://tailwindcss.com/)
 - Axios / React Query
+- SignalR (escuta de eventos em tempo real)
 
 ### Infra
 - Docker / Docker Compose
 - PostgreSQL 15
-- PgAdmin (opcional)
+- PgAdmin
+- Ollama (Serviço de IA rodando em container)
 
 ---
 
@@ -102,6 +106,7 @@ PGADMIN_DEFAULT_PASSWORD=admin
 # SignalR e CORS
 FRONTEND_URL=http://localhost:3000
 API_URL=http://api:8080
+OLLAMA_URL=http://ollama:11434
 ```
 
 e também dentro de frontend/Orders.Frontend com:
@@ -116,7 +121,17 @@ VITE_API_URL=http://localhost:5000
 docker compose --env-file ../.env up -d --build
 ```
 
-### Passo 4 – Acessar o Frontend
+### Passo 4 – baixar o modelo do ollama para o IA Analytics
+
+```bash
+docker compose exec ollama ollama pull llama3
+```
+
+IMPORTANTE:
+
+- Esse passo só precisa ser realizado na primeira vez que rodar o projeto.
+
+### Passo 5 – Acessar o Frontend
 
 Ele ficará disponível em:
 
@@ -298,7 +313,7 @@ npm test
 
 ## 📈 Diferenciais Técnicos
 
-- [X]  Healthchecks implementados (API, Banco e Azure Service Bus).
+- [X] Healthchecks implementados (API, Banco e Azure Service Bus).
 
 - [X] Sequência de status obrigatória Pendente → Processando → Finalizado.
 
@@ -310,7 +325,7 @@ npm test
 
 - [ ] Testcontainers para integração.
 
-- [ ] Módulo IA/Analytics para perguntas em linguagem natural.
+- [X] Módulo IA/Analytics para perguntas em linguagem natural.
 
 ---
 
@@ -321,6 +336,7 @@ npm test
  ┣ 📂 backend
  ┃ ┣ 📂 Orders.Api
  ┃ ┃ ┣ 📂 Controllers
+ ┃ ┃ ┃ ┣ AnalyticsController.cs
  ┃ ┃ ┃ ┗ OrdersController.cs
  ┃ ┃ ┣ 📂 Migrations
  ┃ ┃ ┣ 📂 Models
@@ -339,6 +355,7 @@ npm test
  ┃ ┃ ┣ 📂 src
  ┃ ┃ ┃ ┣ 📂 components
  ┃ ┃ ┃ ┃ ┣ Header.tsx
+ ┃ ┃ ┃ ┃ ┣ IAChat.tsx
  ┃ ┃ ┃ ┃ ┣ NewOrder.tsx
  ┃ ┃ ┃ ┃ ┣ OrderCard.tsx
  ┃ ┃ ┃ ┃ ┣ OrderDetails.tsx
@@ -360,7 +377,7 @@ npm test
  ┃ ┣ 📂 Orders.Worker
  ┃ ┃ ┣ 📂 Models
  ┃ ┃ ┃ ┣ Order.cs
- ┃ ┃ ┃ ┣ OrderStatusHistory.cs
+ ┃ ┃ ┃ ┗ OrderStatusHistory.cs
  ┃ ┃ ┣ dockerfile
  ┃ ┃ ┣ appsettings.json
  ┃ ┃ ┣ Orders.Worker.csproj
