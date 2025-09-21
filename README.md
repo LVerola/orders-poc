@@ -81,7 +81,7 @@ Tabela **OrderStatusHistory**:
 
 ### Passo 1 – Clonar o repositório
 ```bash
-git clone https://github.com/seu-usuario/orders-poc.git
+git clone https://github.com/LVerola/orders-poc.git
 cd orders-poc
 ```
 
