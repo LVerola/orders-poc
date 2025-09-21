@@ -70,6 +70,17 @@ Tabela **OrderStatusHistory**:
 - `Status` (string)
 - `DataAlteracao` (datetime)
 
+Tabela **OutboxEvents**:
+- `Id` (PK)
+- `AggregateId` (UUID do pedido relacionado)
+- `Type` (tipo do evento, ex: OrderCreated)
+- `Payload` (dados do evento em JSON)
+- `CorrelationId` (identificador de correlação, geralmente igual ao OrderId)
+- `CreatedAt ` (datetime)
+- `ProcessedAt ` (datetime, nullable)
+
+- A tabela OutboxEvents é utilizada para garantir a entrega confiável de eventos entre a API e o Service Bus. Sempre que um pedido é criado, um evento é registrado na Outbox. O Worker lê esses eventos e publica no Azure Service Bus, marcando-os como processados. Isso garante que nenhum evento se perca, mesmo em caso de falha na comunicação.
+
 ---
 
 ## 🚀 Como Rodar Localmente
@@ -368,7 +379,8 @@ npm test
  ┃ ┃ ┣ 📂 Migrations
  ┃ ┃ ┣ 📂 Models
  ┃ ┃ ┃ ┣ Order.cs
- ┃ ┃ ┃ ┗ OrderStatusHistory.cs
+ ┃ ┃ ┃ ┣ OrderStatusHistory.cs
+ ┃ ┃ ┃ ┗ OutboxEvent.cs
  ┃ ┃ ┣ 📂 Mocks
  ┃ ┃ ┣ 📂 SignalR
  ┃ ┃ ┃ ┗ OrdersHub.cs
@@ -404,7 +416,8 @@ npm test
  ┃ ┣ 📂 Orders.Worker
  ┃ ┃ ┣ 📂 Models
  ┃ ┃ ┃ ┣ Order.cs
- ┃ ┃ ┃ ┗ OrderStatusHistory.cs
+ ┃ ┃ ┃ ┣ OrderStatusHistory.cs
+ ┃ ┃ ┃ ┗ OutboxEvent.cs
  ┃ ┃ ┣ dockerfile
  ┃ ┃ ┣ appsettings.json
  ┃ ┃ ┣ Orders.Worker.csproj

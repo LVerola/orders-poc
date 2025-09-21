@@ -18,18 +18,49 @@ public class Worker : BackgroundService
         _services = services;
     }
 
-    public override async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _processor = _busClient.CreateProcessor("orders-queue", new ServiceBusProcessorOptions());
         _processor.ProcessMessageAsync += ProcessMessageHandler;
         _processor.ProcessErrorAsync += ErrorHandler;
 
-        await _processor.StartProcessingAsync(cancellationToken);
-        _logger.LogInformation("Worker iniciado e ouvindo a fila orders-queue...");
+        await _processor.StartProcessingAsync(stoppingToken);
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            using var scope = _services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
+            var busClient = scope.ServiceProvider.GetRequiredService<ServiceBusClient>();
+            var sender = busClient.CreateSender("orders-queue");
+
+            var events = await db.OutboxEvents
+                .Where(e => e.ProcessedAt == null)
+                .OrderBy(e => e.CreatedAt)
+                .ToListAsync(stoppingToken);
+
+            foreach (var evt in events)
+            {
+                var message = new ServiceBusMessage(evt.AggregateId.ToString())
+                {
+                    CorrelationId = evt.CorrelationId,
+                    Subject = evt.Type
+                };
+
+                await sender.SendMessageAsync(message, stoppingToken);
+
+                evt.ProcessedAt = DateTime.UtcNow;
+                await db.SaveChangesAsync(stoppingToken);
+
+                _logger.LogInformation("Evento Outbox {Id} enviado ao Service Bus.", evt.Id);
+            }
+
+            await Task.Delay(5000, stoppingToken); // Aguarda 5s antes de checar novamente
+        }
     }
 
     private async Task ProcessMessageHandler(ProcessMessageEventArgs args)
     {
+        _logger.LogInformation("Processando mensagem da fila...");
         var orderIdString = args.Message.Body.ToString();
         using var httpClient = new HttpClient();
         var apiUrl = Environment.GetEnvironmentVariable("API_URL");
@@ -96,6 +127,4 @@ public class Worker : BackgroundService
             await _processor.DisposeAsync();
         }
     }
-
-    protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.CompletedTask;
 }

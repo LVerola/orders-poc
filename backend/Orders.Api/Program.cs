@@ -1,22 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Azure.Messaging.ServiceBus;
 using Orders.Api.Models;
-using Orders.Api.Mocks;
 
 var builder = WebApplication.CreateBuilder(args);
-
-var serviceBusConnectionString = Environment.GetEnvironmentVariable("SERVICEBUS_CONNECTIONSTRING");
-
-if (string.IsNullOrWhiteSpace(serviceBusConnectionString))
-{
-    Console.WriteLine("SERVICEBUS_CONNECTIONSTRING não encontrada. Usando MockServiceBus para desenvolvimento.");
-    builder.Services.AddSingleton<ServiceBusClient, MockServiceBusClient>();
-}
-else
-{
-    builder.Services.AddSingleton<ServiceBusClient>(_ =>
-        new ServiceBusClient(serviceBusConnectionString));
-}
 
 var defaultConnection = builder.Configuration.GetConnectionString("Default");
 builder.Services.AddDbContext<OrdersDbContext>(options =>
@@ -27,7 +13,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-            options.JsonSerializerOptions.WriteIndented = true; // opcional, facilita leitura
+            options.JsonSerializerOptions.WriteIndented = true;
         });
 builder.Services.AddSignalR();
 builder.Services.AddCors(options =>
@@ -60,4 +46,5 @@ public class OrdersDbContext : DbContext
 
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
+    public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
 }

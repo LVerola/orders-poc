@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Azure.Messaging.ServiceBus;
 using Orders.Api.Models;
 
 [ApiController]
@@ -9,13 +8,11 @@ using Orders.Api.Models;
 public class OrdersController : ControllerBase
 {
     private readonly OrdersDbContext _context;
-    private readonly ServiceBusSender _serviceBusSender;
     private readonly IHubContext<OrdersHub> _hubContext;
 
-    public OrdersController(OrdersDbContext context, ServiceBusClient client, IHubContext<OrdersHub> hubContext)
+    public OrdersController(OrdersDbContext context, IHubContext<OrdersHub> hubContext)
     {
         _context = context;
-        _serviceBusSender = client.CreateSender("orders-queue");
         _hubContext = hubContext;
     }
 
@@ -37,13 +34,24 @@ public class OrdersController : ControllerBase
         await _context.SaveChangesAsync();
         await _hubContext.Clients.All.SendAsync("OrderUpdated", order);
 
-        var message = new ServiceBusMessage(order.Id.ToString())
+        var outboxEvent = new OutboxEvent
         {
+            AggregateId = order.Id,
+            Type = "OrderCreated",
+            Payload = System.Text.Json.JsonSerializer.Serialize(order),
             CorrelationId = order.Id.ToString(),
-            Subject = "OrderCreated"
+            CreatedAt = DateTime.UtcNow
         };
+        _context.OutboxEvents.Add(outboxEvent);
+        await _context.SaveChangesAsync();
 
-        await _serviceBusSender.SendMessageAsync(message);
+        // var message = new ServiceBusMessage(order.Id.ToString())
+        // {
+        //     CorrelationId = order.Id.ToString(),
+        //     Subject = "OrderCreated"
+        // };
+
+        // await _serviceBusSender.SendMessageAsync(message);
 
         return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
     }

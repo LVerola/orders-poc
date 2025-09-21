@@ -24,4 +24,5 @@ public class OrdersDbContext : DbContext
 
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
+    public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
 }
