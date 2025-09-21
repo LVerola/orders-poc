@@ -79,6 +79,9 @@ Tabela **OrderStatusHistory**:
 - [Node.js 18+](https://nodejs.org/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
+IMPORTANTE
+- Ao configurar o docker a imagem mais pesada é a do ollama que baixa aproximadamente 1.8GB e depois da configuração inicial dele mais 3.8GB. Tenha isso em mente.
+
 ### Passo 1 – Clonar o repositório
 ```bash
 git clone https://github.com/LVerola/orders-poc.git
@@ -259,7 +262,7 @@ Retorna os detalhes de um pedido específico.
 ---
 
 ### POST /analytics/ask
-Cria um novo pedido.
+Envia uma pergunta a Inteligência Artificial (IA) e retorna a resposta.
 
 **Request**
 ```json
