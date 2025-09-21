@@ -10,17 +10,14 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddDbContext<OrdersDbContext>(options =>
             options.UseNpgsql(defaultConnection));
 
-        // Service Bus
         var sbConnection = Environment.GetEnvironmentVariable("SERVICEBUS_CONNECTIONSTRING");
         services.AddSingleton(new ServiceBusClient(sbConnection));
 
-        // Registrar Worker
         services.AddHostedService<Worker>();
     });
 
 await builder.Build().RunAsync();
 
-// DbContext
 public class OrdersDbContext : DbContext
 {
     public OrdersDbContext(DbContextOptions<OrdersDbContext> options) : base(options) { }

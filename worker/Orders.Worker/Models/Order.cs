@@ -9,7 +9,6 @@ namespace Orders.Worker.Models
         public string Status { get; set; } = "Pendente";
         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
 
-        // Relação com histórico de status
         public List<OrderStatusHistory> StatusHistories { get; set; } = new();
     }
 }

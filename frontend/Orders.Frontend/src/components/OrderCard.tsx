@@ -17,7 +17,7 @@ const statusColors: Record<string, string> = {
 
 const OrderCard: React.FC<OrderCardProps> = ({ id, cliente, produto, valor, status, dataCriacao }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col gap-2 w-full max-w-md mx-auto">
+    <div className="bg-white dark:bg-gray-700 rounded-lg shadow p-6 flex flex-col gap-2 w-full max-w-md mx-auto">
       <div className="flex items-center justify-between">
         <span className="text-sm text-gray-500">ID: {id}</span>
         <span className="flex items-center gap-2">

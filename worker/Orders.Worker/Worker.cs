@@ -48,7 +48,6 @@ public class Worker : BackgroundService
 
         if (order == null) return;
 
-        // Idempotência
         if (order.Status == "Finalizado")
         {
             _logger.LogInformation("Order {orderId} já está finalizado, ignorando.", order.Id);
@@ -56,7 +55,6 @@ public class Worker : BackgroundService
             return;
         }
 
-        // Atualiza para Processando
         order.Status = "Processando";
         order.StatusHistories.Add(new OrderStatusHistory
         {
@@ -65,10 +63,8 @@ public class Worker : BackgroundService
         });
         await db.SaveChangesAsync();
 
-        // Simula processamento
         await Task.Delay(5000);
 
-        // Atualiza para Finalizado
         order.Status = "Finalizado";
         order.StatusHistories.Add(new OrderStatusHistory
         {

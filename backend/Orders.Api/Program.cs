@@ -5,7 +5,6 @@ using Orders.Api.Mocks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Se não houver a variável real do Azure Service Bus, usa o mock
 var serviceBusConnectionString = Environment.GetEnvironmentVariable("SERVICEBUS_CONNECTIONSTRING");
 
 if (string.IsNullOrWhiteSpace(serviceBusConnectionString))
@@ -19,7 +18,6 @@ else
         new ServiceBusClient(serviceBusConnectionString));
 }
 
-// Configura DbContext usando connection string do appsettings ou variáveis de ambiente
 var defaultConnection = builder.Configuration.GetConnectionString("Default");
 builder.Services.AddDbContext<OrdersDbContext>(options =>
     options.UseNpgsql(defaultConnection));
@@ -31,22 +29,28 @@ builder.Services.AddControllers()
             options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
             options.JsonSerializerOptions.WriteIndented = true; // opcional, facilita leitura
         });
+builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowFrontend", policy =>
+            policy.WithOrigins("http://localhost:3000")
+                .AllowAnyHeader()
+                .AllowAnyMethod());
+    });
 
 var app = builder.Build();
 
-// Aplica migrations automaticamente
+app.UseCors("AllowFrontend");
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<OrdersDbContext>();
     db.Database.Migrate();
 }
 
-// app.MapGet("/", () => "Hello World from Orders API!");
 app.MapHealthChecks("/health");
 app.MapControllers();
 app.Run();
 
-// DbContext
 public class OrdersDbContext : DbContext
 {
     public OrdersDbContext(DbContextOptions<OrdersDbContext> options) : base(options) { }
