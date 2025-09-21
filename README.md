@@ -335,18 +335,28 @@ Agora você poderá navegar pelas tabelas Orders e OrderStatusHistories. 🚀
 
 - **Backend**
   - Testes unitários com **xUnit** para regras de negócio e serviços.
-  - Testes de integração com banco de dados via **Docker**.
-  - Testes de API simulando chamadas REST (ex.: criação e consulta de pedidos).
+  - Testes de integração com banco de dados usando **Testcontainers** e **Docker**.
+  - Testes de integração de API simulando chamadas REST com **WebApplicationFactory** (ex.: criação, consulta e analytics).
+  - Testes de healthcheck da API.
+  - Testes do padrão Outbox para mensageria confiável.
 
-- **Frontend**
-  - Testes de componentes com **Jest + React Testing Library**.
-  - Testes de fluxo principal: criar pedido → listar pedidos → visualizar detalhes.
+- **Worker**
+  - Testes unitários com **xUnit** para lógica de processamento de pedidos.
+  - Testes de integração simulando persistência, atualização de status e envio de eventos Outbox.
+  - Testes de tratamento de mensagens e erros no processamento.
 
-Para rodar os testes:
+Para rodar os testes no backend:
 ```bash
+cd tests/Orders.Api.Tests
 dotnet test
-npm test
 ```
+
+Para rodar os testes no worker:
+```bash
+cd tests/Orders.Worker.Tests
+dotnet test
+```
+
 ---
 
 ## 📈 Diferenciais Técnicos
@@ -361,7 +371,7 @@ npm test
 
 - [X] SignalR/WebSockets para atualização em tempo real.
 
-- [ ] Testcontainers para integração.
+- [X] Testcontainers para integração.
 
 - [X] Módulo IA/Analytics para perguntas em linguagem natural.
 
@@ -412,6 +422,17 @@ npm test
  ┃ ┃ ┣ package.json
  ┃ ┃ ┗ vite.config.json
  ┣ 📂 infra          # docker-compose.yml
+ ┣ 📂 tests
+ ┃ ┣ 📂 Orders.Api.Tests
+ ┃ ┃ ┣ AnalyticsControllerTests.cs
+ ┃ ┃ ┣ HealthCheckTests.cs
+ ┃ ┃ ┣ OrderIntegrationTests.cs
+ ┃ ┃ ┣ Orders.Api.Tests.csproj
+ ┃ ┃ ┗ OutboxEventTests.cs
+ ┃ ┣ 📂 Orders.Worker.Tests
+ ┃ ┃ ┣ Orders.Worker.Tests.csproj
+ ┃ ┃ ┣ ProcessMessageTests.cs
+ ┃ ┗ ┗ WorkerTests.cs
  ┣ 📂 worker
  ┃ ┣ 📂 Orders.Worker
  ┃ ┃ ┣ 📂 Models

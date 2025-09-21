@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Orders.Api.Models;
+using Orders.Api;
 
 [ApiController]
 [Route("[controller]")]

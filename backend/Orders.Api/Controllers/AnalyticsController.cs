@@ -8,7 +8,7 @@ public class AnalyticsController : ControllerBase
     [HttpPost("ask")]
 public async Task<IActionResult> Ask([FromBody] AnalyticsQuestionDto dto)
   {
-    var ollamaUrl = $"{Environment.GetEnvironmentVariable("OLLAMA_URL")}/api/generate";
+    var ollamaUrl = $"{Environment.GetEnvironmentVariable("OLLAMA_URL") ?? "http://localhost:11434"}/api/generate";
     var contexto = @"
       Você é um assistente para uma API de pedidos.
       Tabela Orders: Id, Cliente, Produto, Valor, Status (Pendente, Processando, Finalizado), DataCriacao.
