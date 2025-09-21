@@ -126,13 +126,14 @@ docker compose --env-file ../.env up -d --build
 
 ### Passo 4 – baixar o modelo do ollama para o IA Analytics
 
-```bash
-docker compose exec ollama ollama pull llama3
-```
-
 IMPORTANTE:
 
 - Esse passo só precisa ser realizado na primeira vez que rodar o projeto.
+- O chatbot utiliza aproximadamente 4GB de memória RAM a mais do projeto, então tenha isso em mente na hora de utilizar. Em testes no meu ambiente ele utilizou aproximadamente 7GB de memória RAM total.
+
+```bash
+docker compose exec ollama ollama pull llama3
+```
 
 ### Passo 5 – Acessar o Frontend
 
