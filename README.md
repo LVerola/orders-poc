@@ -86,9 +86,10 @@ Tabela **OutboxEvents**:
 ## 🚀 Como Rodar Localmente
 
 ### Pré-requisitos
-- [.NET 9+](https://dotnet.microsoft.com/pt-br/download)
-- [Node.js 18+](https://nodejs.org/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- [.NET 9+](https://dotnet.microsoft.com/pt-br/download)
+
+> **Observação:** O .NET 9+ só é necessário caso queira rodar os testes localmente com `dotnet test`.
 
 IMPORTANTE
 - Ao configurar o docker a imagem mais pesada é a do ollama que baixa aproximadamente 1.8GB e depois da configuração inicial dele mais 3.8GB. Tenha isso em mente.
