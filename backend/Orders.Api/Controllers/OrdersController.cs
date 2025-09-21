@@ -33,7 +33,6 @@ public class OrdersController : ControllerBase
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
-        // Enviar apenas o Id do pedido
         var message = new ServiceBusMessage(order.Id.ToString())
         {
             CorrelationId = order.Id.ToString(),
