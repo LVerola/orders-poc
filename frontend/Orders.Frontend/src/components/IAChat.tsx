@@ -7,9 +7,27 @@ type IAChatProps = {
 };
 
 type Message = {
-    role: 'user' | 'ia';
+    role: 'user' | 'ia' | 'loading';
     text: string;
 };
+
+const LoadingDots: React.FC = () => {
+    const [dots, setDots] = useState('');
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setDots(prev => prev.length < 3 ? prev + '.' : '.');
+        }, 400);
+        return () => clearInterval(interval);
+    }, []);
+    return <span>Pensando {dots.padEnd(3, ' ')}</span>;
+};
+
+const Spinner: React.FC = () => (
+    <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+    </svg>
+);
 
 const IAChat: React.FC<IAChatProps> = ({ open, onClose }) => {
     const [question, setQuestion] = useState('');
@@ -34,17 +52,24 @@ const IAChat: React.FC<IAChatProps> = ({ open, onClose }) => {
         e.preventDefault();
         if (!question.trim()) return;
         setMessages(prev => [...prev, { role: 'user', text: question }]);
+        setQuestion('');
         setLoading(true);
         setError('');
+        setMessages(prev => [...prev, { role: 'loading', text: '...' }]);
         try {
             const res = await api.post('/analytics/ask', { question });
             const iaText = res.data.answer || res.data;
-            setMessages(prev => [...prev, { role: 'ia', text: iaText }]);
+            setMessages(prev => [
+                ...prev.filter(m => m.role !== 'loading'),
+                { role: 'ia', text: iaText }
+            ]);
         } catch {
-            setMessages(prev => [...prev, { role: 'ia', text: 'Erro ao consultar IA.' }]);
+            setMessages(prev => [
+                ...prev.filter(m => m.role !== 'loading'),
+                { role: 'ia', text: 'Erro ao consultar IA.' }
+            ]);
         }
         setLoading(false);
-        setQuestion('');
     };
 
     if (!open) return null;
@@ -75,10 +100,12 @@ const IAChat: React.FC<IAChatProps> = ({ open, onClose }) => {
                                 className={`px-4 py-2 rounded-lg max-w-[80%] ${
                                     msg.role === 'user'
                                         ? 'bg-violet-600 text-white'
-                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                                        : msg.role === 'loading'
+                                            ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 flex items-center'
+                                            : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
                                 }`}
                             >
-                                {msg.text}
+                                {msg.role === 'loading' ? <LoadingDots /> : msg.text}
                             </div>
                         </div>
                     ))}
@@ -99,10 +126,10 @@ const IAChat: React.FC<IAChatProps> = ({ open, onClose }) => {
                     />
                     <button
                         type="submit"
-                        className="bg-violet-950 text-white px-4 py-2 rounded shadow hover:bg-violet-900 transition"
+                        className="bg-violet-950 text-white px-4 py-2 rounded shadow hover:bg-violet-900 transition flex items-center"
                         disabled={loading}
                     >
-                        {loading ? '...' : 'Enviar'}
+                        {loading ? <Spinner /> : 'Enviar'}
                     </button>
                 </form>
                 {error && <div className="text-red-500 mt-2 px-4">{error}</div>}
