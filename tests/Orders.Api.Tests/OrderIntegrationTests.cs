@@ -65,31 +65,31 @@ public class OrderIntegrationTests : IAsyncLifetime
     {
         var order1 = new Order
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
             Cliente = "Cliente 1",
             Produto = "Produto 1",
             Valor = 1000,
             Status = "Pendente",
-            DataCriacao = DateTime.UtcNow
+            DataCriacao = DateTime.SpecifyKind(DateTime.Parse("2025-09-21T00:00:00Z"), DateTimeKind.Utc)
         };
         var order2 = new Order
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
             Cliente = "Cliente 2",
             Produto = "Produto 2",
             Valor = 2000,
             Status = "Pendente",
-            DataCriacao = DateTime.UtcNow
+            DataCriacao = DateTime.SpecifyKind(DateTime.Parse("2025-09-21T00:00:00Z"), DateTimeKind.Utc)
         };
 
         _dbContext.Orders.AddRange(order1, order2);
         await _dbContext.SaveChangesAsync();
 
-        var pedidos = await _dbContext.Orders.ToListAsync();
+        var pedidos = await _dbContext.Orders.OrderBy(o => o.Cliente).ToListAsync();
+        var actual = System.Text.Json.JsonSerializer.Serialize(pedidos, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
 
-        Assert.Contains(pedidos, o => o.Id == order1.Id);
-        Assert.Contains(pedidos, o => o.Id == order2.Id);
-        Assert.True(pedidos.Count >= 2);
+        var expected = await File.ReadAllTextAsync(Path.Combine("golden", "orders_list.json"));
+        Assert.Equal(expected.Trim(), actual.Trim());
     }
 
     [Fact]
@@ -97,12 +97,12 @@ public class OrderIntegrationTests : IAsyncLifetime
     {
         var order = new Order
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
             Cliente = "Detalhe",
             Produto = "Produto Detalhe",
             Valor = 1500,
             Status = "Pendente",
-            DataCriacao = DateTime.UtcNow
+            DataCriacao = DateTime.SpecifyKind(DateTime.Parse("2025-09-21T00:00:00Z"), DateTimeKind.Utc)
         };
 
         _dbContext.Orders.Add(order);
@@ -110,9 +110,9 @@ public class OrderIntegrationTests : IAsyncLifetime
 
         var pedido = await _dbContext.Orders.FindAsync(order.Id);
 
-        Assert.NotNull(pedido);
-        Assert.Equal("Detalhe", pedido!.Cliente);
-        Assert.Equal("Produto Detalhe", pedido.Produto);
+        var actual = System.Text.Json.JsonSerializer.Serialize(pedido, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        var expected = await File.ReadAllTextAsync(Path.Combine("golden", "order_detail.json"));
+        Assert.Equal(expected.Trim(), actual.Trim());
     }
 
     [Fact]

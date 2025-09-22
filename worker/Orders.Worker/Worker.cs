@@ -54,7 +54,7 @@ public class Worker : BackgroundService
                 _logger.LogInformation("Evento Outbox {Id} enviado ao Service Bus.", evt.Id);
             }
 
-            await Task.Delay(5000, stoppingToken); // Aguarda 5s antes de checar novamente
+            await Task.Delay(5000, stoppingToken);
         }
     }
 

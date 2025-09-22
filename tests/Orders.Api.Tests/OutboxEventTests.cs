@@ -42,12 +42,12 @@ public class OutboxEventTests : IAsyncLifetime
     {
         var order = new Order
         {
-            Id = Guid.NewGuid(),
+            Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
             Cliente = "Teste",
             Produto = "Notebook",
             Valor = 2500,
             Status = "Pendente",
-            DataCriacao = DateTime.UtcNow
+            DataCriacao = DateTime.SpecifyKind(DateTime.Parse("2025-09-21T00:00:00Z"), DateTimeKind.Utc)
         };
 
         _dbContext.Orders.Add(order);
@@ -59,11 +59,15 @@ public class OutboxEventTests : IAsyncLifetime
             Type = "OrderCreated",
             Payload = System.Text.Json.JsonSerializer.Serialize(order),
             CorrelationId = order.Id.ToString(),
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.SpecifyKind(DateTime.Parse("2025-09-21T00:00:00Z"), DateTimeKind.Utc)
         };
 
         _dbContext.OutboxEvents.Add(outboxEvent);
         await _dbContext.SaveChangesAsync();
+
+        var payload = System.Text.Json.JsonSerializer.Serialize(order, new System.Text.Json.JsonSerializerOptions {
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        });
 
         var eventoSalvo = await _dbContext.OutboxEvents
             .FirstOrDefaultAsync(e => e.AggregateId == order.Id && e.Type == "OrderCreated" && e.ProcessedAt == null);
@@ -72,5 +76,12 @@ public class OutboxEventTests : IAsyncLifetime
         Assert.Equal(order.Id, eventoSalvo!.AggregateId);
         Assert.Equal("OrderCreated", eventoSalvo.Type);
         Assert.Null(eventoSalvo.ProcessedAt);
+
+        var actualEvent = System.Text.Json.JsonSerializer.Serialize(eventoSalvo, new System.Text.Json.JsonSerializerOptions {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        });
+        var expectedEvent = await File.ReadAllTextAsync(Path.Combine("golden", "outbox_event.json"));
+        Assert.Equal(expectedEvent.Trim(), actualEvent.Trim());
     }
 }

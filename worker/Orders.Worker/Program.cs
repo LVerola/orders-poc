@@ -8,6 +8,8 @@ using Orders.Worker.Models;
 var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) =>
     {
+        var disableJaeger = Environment.GetEnvironmentVariable("DISABLE_JAEGER") == "true";
+
         var defaultConnection = hostContext.Configuration.GetConnectionString("Default");
         services.AddDbContext<OrdersDbContext>(options =>
             options.UseNpgsql(defaultConnection));
@@ -22,13 +24,17 @@ var builder = Host.CreateDefaultBuilder(args)
             {
                 tracing
                     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Orders.Worker"))
-                    .AddEntityFrameworkCoreInstrumentation()
-                    .AddJaegerExporter(options =>
+                    .AddEntityFrameworkCoreInstrumentation();
+
+                if (!disableJaeger)
+                {
+                    tracing.AddJaegerExporter(options =>
                         {
                             options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_HOST") ?? "jaeger";
                             options.AgentPort = int.TryParse(Environment.GetEnvironmentVariable("JAEGER_PORT"), out var port) ? port : 6831;
                         })
                     .AddSource("Orders.Worker");
+                }
             });
     });
 

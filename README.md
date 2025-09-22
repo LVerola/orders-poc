@@ -184,14 +184,58 @@ No campo **Service**, selecione `Orders.Api` ou `Orders.Worker` para visualizar 
   - Testes de tratamento de mensagens e erros no processamento.
 
 Para rodar os testes no backend:
+
+- Entre na pasta dos testes da API
+
 ```bash
 cd tests/Orders.Api.Tests
+```
+
+- Defina a variável `DISABLE_JAEGER=true` antes de rodar os testes para evitar erros de conexão com Jaeger:
+
+- **Windows CMD**
+```cmd
+set DISABLE_JAEGER=true
+dotnet test
+```
+
+- **Windows PoweShell**
+```powershell
+$env:DISABLE_JAEGER = "true"
+dotnet test
+```
+
+- **Linux/Mac**
+```bash
+export DISABLE_JAEGER=true
 dotnet test
 ```
 
 Para rodar os testes no worker:
+
+- Entre na pasta dos testes do Worker
+
 ```bash
 cd tests/Orders.Worker.Tests
+```
+
+- Defina a variável `DISABLE_JAEGER=true` antes de rodar os testes para evitar erros de conexão com Jaeger:
+
+- **Windows CMD**
+```cmd
+set DISABLE_JAEGER=true
+dotnet test
+```
+
+- **Windows PoweShell**
+```powershell
+$env:DISABLE_JAEGER = "true"
+dotnet test
+```
+
+- **Linux/Mac**
+```bash
+export DISABLE_JAEGER=true
 dotnet test
 ```
 
@@ -351,6 +395,8 @@ Envia uma pergunta a Inteligência Artificial (IA) e retorna a resposta.
 - [X] Módulo IA/Analytics para perguntas em linguagem natural.
 
 - [X] Tracing ponta-a-ponta com OpenTelemetry e Jaeger.
+
+- [X] Golden Tests para validação de persistência e eventos.
 
 ---
 

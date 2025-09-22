@@ -9,7 +9,6 @@ namespace Orders.Api.Models
         public string Status { get; set; } = "Pendente";
         public DateTime DataAlteracao { get; set; } = DateTime.UtcNow;
 
-        // Propriedade de navegação
         [JsonIgnore]
         public Order Order { get; set; } = null!;
     }

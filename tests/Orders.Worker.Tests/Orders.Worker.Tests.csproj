@@ -26,4 +26,9 @@
     <ProjectReference Include="..\..\worker\Orders.Worker\Orders.Worker.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="golden\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

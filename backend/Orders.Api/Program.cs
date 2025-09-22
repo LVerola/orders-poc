@@ -12,6 +12,8 @@ namespace Orders.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            var disableJaeger = Environment.GetEnvironmentVariable("DISABLE_JAEGER") == "true";
+
             var defaultConnection = builder.Configuration.GetConnectionString("Default");
             builder.Services.AddDbContext<OrdersDbContext>(options =>
                 options.UseNpgsql(defaultConnection));
@@ -39,13 +41,18 @@ namespace Orders.Api
                     tracing
                         .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Orders.Api"))
                         .AddAspNetCoreInstrumentation()
-                        .AddEntityFrameworkCoreInstrumentation()
-                        .AddJaegerExporter(options =>
+                        .AddEntityFrameworkCoreInstrumentation();
+
+
+                    if (!disableJaeger)
+                    {
+                        tracing.AddJaegerExporter(options =>
                             {
                                 options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_HOST") ?? "jaeger";
                                 options.AgentPort = int.TryParse(Environment.GetEnvironmentVariable("JAEGER_PORT"), out var port) ? port : 6831;
                             })
                         .AddSource("Orders.Api");
+                    }
                 });
 
             var app = builder.Build();

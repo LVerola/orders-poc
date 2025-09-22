@@ -24,4 +24,9 @@
     <ProjectReference Include="..\..\backend\Orders.Api\Orders.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="golden\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

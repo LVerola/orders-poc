@@ -16,7 +16,8 @@ public class ProcessMessageTests
             .Options;
 
         using var db = new OrdersDbContext(options);
-        var order = new Order { Status = "Novo" };
+        var orderId = Guid.Parse("161fbd37-7a1f-4b30-85aa-123456789abc");
+        var order = new Order { Id = orderId, Status = "Pendente" };
         db.Orders.Add(order);
         await db.SaveChangesAsync();
 
@@ -28,6 +29,22 @@ public class ProcessMessageTests
 
         Assert.Equal("Finalizado", order.Status);
         Assert.Equal(2, await db.OrderStatusHistories.CountAsync());
+
+        var historicos = await db.OrderStatusHistories
+            .AsNoTracking()
+            .OrderBy(h => h.Status)
+            .Select(h => new { h.Status, h.OrderId })
+            .ToListAsync();
+        var actualHistoricos = System.Text.Json.JsonSerializer.Serialize(historicos, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        var expectedHistoricos = await File.ReadAllTextAsync(Path.Combine("golden", "order_status_histories.json"));
+        Assert.Equal(expectedHistoricos.Trim(), actualHistoricos.Trim());
+
+        var actualOrder = System.Text.Json.JsonSerializer.Serialize(
+            new { order.Id, order.Status },
+            new System.Text.Json.JsonSerializerOptions { WriteIndented = true }
+        );
+        var expectedOrder = await File.ReadAllTextAsync(Path.Combine("golden", "order_final.json"));
+        Assert.Equal(expectedOrder.Trim(), actualOrder.Trim());
     }
 
     [Fact]

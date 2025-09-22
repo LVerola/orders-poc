@@ -46,14 +46,6 @@ public class OrdersController : ControllerBase
         _context.OutboxEvents.Add(outboxEvent);
         await _context.SaveChangesAsync();
 
-        // var message = new ServiceBusMessage(order.Id.ToString())
-        // {
-        //     CorrelationId = order.Id.ToString(),
-        //     Subject = "OrderCreated"
-        // };
-
-        // await _serviceBusSender.SendMessageAsync(message);
-
         return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
     }
 
