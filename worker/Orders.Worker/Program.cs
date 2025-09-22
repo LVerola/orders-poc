@@ -1,5 +1,7 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Orders.Worker;
 using Orders.Worker.Models;
 
@@ -14,6 +16,20 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddSingleton(new ServiceBusClient(sbConnection));
 
         services.AddHostedService<Worker>();
+
+        services.AddOpenTelemetry()
+            .WithTracing(tracing =>
+            {
+                tracing
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Orders.Worker"))
+                    .AddEntityFrameworkCoreInstrumentation()
+                    .AddJaegerExporter(options =>
+                        {
+                            options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_HOST") ?? "jaeger";
+                            options.AgentPort = int.TryParse(Environment.GetEnvironmentVariable("JAEGER_PORT"), out var port) ? port : 6831;
+                        })
+                    .AddSource("Orders.Worker");
+            });
     });
 
 await builder.Build().RunAsync();

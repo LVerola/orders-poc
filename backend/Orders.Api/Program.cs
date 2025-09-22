@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Azure.Messaging.ServiceBus;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Orders.Api.Models;
 
 namespace Orders.Api
@@ -30,6 +32,20 @@ namespace Orders.Api
                             .AllowAnyHeader()
                             .AllowAnyMethod()
                             .AllowCredentials());
+                });
+            builder.Services.AddOpenTelemetry()
+                .WithTracing(tracing =>
+                {
+                    tracing
+                        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Orders.Api"))
+                        .AddAspNetCoreInstrumentation()
+                        .AddEntityFrameworkCoreInstrumentation()
+                        .AddJaegerExporter(options =>
+                            {
+                                options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_HOST") ?? "jaeger";
+                                options.AgentPort = int.TryParse(Environment.GetEnvironmentVariable("JAEGER_PORT"), out var port) ? port : 6831;
+                            })
+                        .AddSource("Orders.Api");
                 });
 
             var app = builder.Build();

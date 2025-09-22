@@ -37,52 +37,6 @@ O objetivo é demonstrar domínio em **.NET, React, PostgreSQL, mensageria e boa
 
 ---
 
-## 📐 Diagramas
-
-### Arquitetura
-
-![Arquitetura](./docs/diagram.png)
-
-Fluxo:
-1. Usuário acessa o **Frontend** (React).
-2. Frontend chama a **API Backend** (.NET).
-3. API salva no **PostgreSQL** e envia evento ao **Azure Service Bus**.
-4. O **Worker** consome a fila, processa o pedido e atualiza o banco.
-5. Frontend exibe as mudanças de status em tempo real (ou via refresh).
-
----
-
-### Modelo de Dados
-
-![Banco de Dados](./docs/db-diagram.png)
-
-Tabela **Orders**:
-- `Id` (UUID, PK)
-- `Cliente` (string)
-- `Produto` (string)
-- `Valor` (decimal)
-- `Status` (enum: `Pendente`, `Processando`, `Finalizado`)
-- `DataCriacao` (datetime)
-
-Tabela **OrderStatusHistory**:
-- `Id` (UUID, PK)
-- `OrderId` (UUID, FK)
-- `Status` (string)
-- `DataAlteracao` (datetime)
-
-Tabela **OutboxEvents**:
-- `Id` (PK)
-- `AggregateId` (UUID do pedido relacionado)
-- `Type` (tipo do evento, ex: OrderCreated)
-- `Payload` (dados do evento em JSON)
-- `CorrelationId` (identificador de correlação, geralmente igual ao OrderId)
-- `CreatedAt ` (datetime)
-- `ProcessedAt ` (datetime, nullable)
-
-- A tabela OutboxEvents é utilizada para garantir a entrega confiável de eventos entre a API e o Service Bus. Sempre que um pedido é criado, um evento é registrado na Outbox. O Worker lê esses eventos e publica no Azure Service Bus, marcando-os como processados. Isso garante que nenhum evento se perca, mesmo em caso de falha na comunicação.
-
----
-
 ## 🚀 Como Rodar Localmente
 
 ### Pré-requisitos
@@ -122,6 +76,10 @@ PGADMIN_DEFAULT_PASSWORD=admin
 FRONTEND_URL=http://localhost:3000
 API_URL=http://api:8080
 OLLAMA_URL=http://ollama:11434
+
+# JAEGER
+JAEGER_HOST=jaeger
+JAEGER_PORT=6831
 ```
 
 e também dentro de frontend/Orders.Frontend com:
@@ -154,7 +112,88 @@ docker compose exec ollama ollama pull llama3
 
 Ele ficará disponível em:
 
-- URL: http://localhost:3000
+- URL: [http://localhost:3000](http://localhost:3000)
+
+---
+
+### 📊 Acessando o pgAdmin
+
+O **pgAdmin** já está configurado no `docker-compose.yml`.  
+Após subir os serviços com:
+
+```bash
+docker compose --env-file ../.env up -d --build
+```
+
+Ele ficará disponível em:
+
+- URL: [http://localhost:5050](http://localhost:5050)
+
+- Usuário: ${PGADMIN_DEFAULT_EMAIL}
+
+- Senha: ${PGADMIN_DEFAULT_PASSWORD}
+
+### 🔗 Conectando ao Postgres no pgAdmin
+
+1. Clique em Add New Server.
+
+2. Em General → Name, coloque um nome (ex: OrdersDB).
+
+3. Em Connection:
+
+    - Host: postgres
+
+    - Port: 5432
+
+    - Username: ${POSTGRES_USER}
+
+    - Password: ${POSTGRES_PASSWORD}
+
+4. Clique em Save.
+
+Agora você poderá navegar pelas tabelas Orders e OrderStatusHistories. 🚀
+
+---
+
+## 🔎 Tracing & Observabilidade
+
+O projeto utiliza o [Jaeger](https://www.jaegertracing.io/) para tracing ponta-a-ponta das operações entre API e Worker, via OpenTelemetry.
+
+Após subir o ambiente com Docker Compose, acesse o Jaeger em:
+
+- URL: [http://localhost:16686](http://localhost:16686)
+
+No campo **Service**, selecione `Orders.Api` ou `Orders.Worker` para visualizar os traces gerados pelas requisições e processamento de pedidos.
+
+> Caso não apareça nenhum trace, faça uma requisição na API ou crie um pedido para gerar novas operações.
+
+---
+
+## 🧪 Testes
+
+- **Backend**
+  - Testes unitários com **xUnit** para regras de negócio e serviços.
+  - Testes de integração com banco de dados usando **Testcontainers** e **Docker**.
+  - Testes de integração de API simulando chamadas REST com **WebApplicationFactory** (ex.: criação, consulta e analytics).
+  - Testes de healthcheck da API.
+  - Testes do padrão Outbox para mensageria confiável.
+
+- **Worker**
+  - Testes unitários com **xUnit** para lógica de processamento de pedidos.
+  - Testes de integração simulando persistência, atualização de status e envio de eventos Outbox.
+  - Testes de tratamento de mensagens e erros no processamento.
+
+Para rodar os testes no backend:
+```bash
+cd tests/Orders.Api.Tests
+dotnet test
+```
+
+Para rodar os testes no worker:
+```bash
+cd tests/Orders.Worker.Tests
+dotnet test
+```
 
 ---
 
@@ -291,72 +330,7 @@ Envia uma pergunta a Inteligência Artificial (IA) e retorna a resposta.
 }
 ```
 
----
-
-### 📊 Acessando o pgAdmin
-
-O **pgAdmin** já está configurado no `docker-compose.yml`.  
-Após subir os serviços com:
-
-```bash
-docker compose --env-file ../.env up -d --build
-```
-
-Ele ficará disponível em:
-
-- URL: http://localhost:5050
-
-- Usuário: ${PGADMIN_DEFAULT_EMAIL}
-
-- Senha: ${PGADMIN_DEFAULT_PASSWORD}
-
-### 🔗 Conectando ao Postgres no pgAdmin
-
-1. Clique em Add New Server.
-
-2. Em General → Name, coloque um nome (ex: OrdersDB).
-
-3. Em Connection:
-
-    - Host: postgres
-
-    - Port: 5432
-
-    - Username: ${POSTGRES_USER}
-
-    - Password: ${POSTGRES_PASSWORD}
-
-4. Clique em Save.
-
-Agora você poderá navegar pelas tabelas Orders e OrderStatusHistories. 🚀
-
----
-
-## 🧪 Testes
-
-- **Backend**
-  - Testes unitários com **xUnit** para regras de negócio e serviços.
-  - Testes de integração com banco de dados usando **Testcontainers** e **Docker**.
-  - Testes de integração de API simulando chamadas REST com **WebApplicationFactory** (ex.: criação, consulta e analytics).
-  - Testes de healthcheck da API.
-  - Testes do padrão Outbox para mensageria confiável.
-
-- **Worker**
-  - Testes unitários com **xUnit** para lógica de processamento de pedidos.
-  - Testes de integração simulando persistência, atualização de status e envio de eventos Outbox.
-  - Testes de tratamento de mensagens e erros no processamento.
-
-Para rodar os testes no backend:
-```bash
-cd tests/Orders.Api.Tests
-dotnet test
-```
-
-Para rodar os testes no worker:
-```bash
-cd tests/Orders.Worker.Tests
-dotnet test
-```
+> **Observação:** A resposta acima é apenas um exemplo, ela pode divergir por se tratar de uma resposta gerada por IA.
 
 ---
 
@@ -375,6 +349,54 @@ dotnet test
 - [X] Testcontainers para integração.
 
 - [X] Módulo IA/Analytics para perguntas em linguagem natural.
+
+- [X] Tracing ponta-a-ponta com OpenTelemetry e Jaeger.
+
+---
+
+## 📐 Diagramas
+
+### Arquitetura
+
+![Arquitetura](./docs/diagram.png)
+
+Fluxo:
+1. Usuário acessa o **Frontend** (React).
+2. Frontend chama a **API Backend** (.NET).
+3. API salva no **PostgreSQL** e envia evento ao **Azure Service Bus**.
+4. O **Worker** consome a fila, processa o pedido e atualiza o banco.
+5. Frontend exibe as mudanças de status em tempo real (ou via refresh).
+
+---
+
+### Modelo de Dados
+
+![Banco de Dados](./docs/db-diagram.png)
+
+Tabela **Orders**:
+- `Id` (UUID, PK)
+- `Cliente` (string)
+- `Produto` (string)
+- `Valor` (decimal)
+- `Status` (enum: `Pendente`, `Processando`, `Finalizado`)
+- `DataCriacao` (datetime)
+
+Tabela **OrderStatusHistory**:
+- `Id` (UUID, PK)
+- `OrderId` (UUID, FK)
+- `Status` (string)
+- `DataAlteracao` (datetime)
+
+Tabela **OutboxEvents**:
+- `Id` (PK)
+- `AggregateId` (UUID do pedido relacionado)
+- `Type` (tipo do evento, ex: OrderCreated)
+- `Payload` (dados do evento em JSON)
+- `CorrelationId` (identificador de correlação, geralmente igual ao OrderId)
+- `CreatedAt ` (datetime)
+- `ProcessedAt ` (datetime, nullable)
+
+- A tabela OutboxEvents é utilizada para garantir a entrega confiável de eventos entre a API e o Service Bus. Sempre que um pedido é criado, um evento é registrado na Outbox. O Worker lê esses eventos e publica no Azure Service Bus, marcando-os como processados. Isso garante que nenhum evento se perca, mesmo em caso de falha na comunicação.
 
 ---
 
