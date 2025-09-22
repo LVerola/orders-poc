@@ -82,6 +82,9 @@ JAEGER_HOST=jaeger
 JAEGER_PORT=6831
 ```
 
+> **Atenção:** Certifique-se de que existe uma fila chamada `orders-queue` no seu Azure Service Bus.
+> O projeto depende desse nome para funcionar corretamente!
+
 e também dentro de frontend/Orders.Frontend com:
 
 ```env
@@ -409,9 +412,9 @@ Envia uma pergunta a Inteligência Artificial (IA) e retorna a resposta.
 Fluxo:
 1. Usuário acessa o **Frontend** (React).
 2. Frontend chama a **API Backend** (.NET).
-3. API salva no **PostgreSQL** e envia evento ao **Azure Service Bus**.
-4. O **Worker** consome a fila, processa o pedido e atualiza o banco.
-5. Frontend exibe as mudanças de status em tempo real (ou via refresh).
+3. API salva o pedido no **PostgreSQL** e registra um evento na tabela **OutboxEvents**.
+4. O **Worker** lê os eventos da Outbox, publica no **Azure Service Bus** e marca como processado.
+5. Frontend exibe as mudanças de status em tempo real (via SignalR ou refresh).
 
 ---
 
